@@ -123,7 +123,8 @@ class WhileStatement(Statement):
 
 import random   
 APPEND_CHANCE = 0.7
-DECAY = 0.999
+NEST_CHANCE = 0.4
+DECAY = 0.9999
 def roll():
     global APPEND_CHANCE
     APPEND_CHANCE *= DECAY
@@ -158,7 +159,7 @@ class StatementListFactory(EntityFactory):
                     IfStatementFactory,
                     WhileStatementFactory
                  ],
-                weights = (20, 20, 20, 10, 10))[0]
+                weights = (20, 20, 20, 7, 7))[0]
             statements.append(statement_factory().generate())
 
         return StatementList(statements)
