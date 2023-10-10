@@ -229,4 +229,5 @@ if __name__ == "__main__":
         with open('generate.in', 'w') as f:
             f.write(buffer)
     
-    print(pkb.relationships)
+    with open('truths.out', 'w') as f:
+        f.write(')\n('.join(str(list(pkb.relationships)).split('), (')))
