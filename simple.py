@@ -4,99 +4,99 @@ from pkb import PKB
 pkb = PKB()
 
 class Entity:
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         pass
 
 class Operator(Entity):
-    def __init__(self, symbol: str):
+    def __init__(self, symbol):
         self.symbol = symbol
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         return self.symbol
 
 class Expression(Entity):
-    def __init__(self, left_term: 'Term', operator: str, right_term: 'Term'):
+    def __init__(self, left_term, operator, right_term):
         self.left_term = left_term
         self.operator = operator
         self.right_term = right_term
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         return f"{self.left_term.serialise()} {self.operator} {self.right_term.serialise()}"
 
 class Term(Entity):
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         pass
 
 class Variable(Term):
-    def __init__(self, name: str):
+    def __init__(self, name):
         self.name = name
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         return self.name
 
 class Constant(Term):
-    def __init__(self, value: str):
+    def __init__(self, value):
         self.value = value
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         return self.value
 
 class Procedure(Entity):
-    def __init__(self, name: str, statements: 'StatementList') -> None:
+    def __init__(self, name, statements):
         self.name = name
         self.statements = statements
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         statement_list = self.statements.serialise(indent_level + 1)
         indentation = " " * (indent_level * 4)
         return f"{indentation}procedure {self.name} {{\n{statement_list}\n{indentation}}}\n"
 
 class StatementList(Entity):
-    def __init__(self, statements: List['Statement']) -> None:
+    def __init__(self, statements):
         self.statements = statements
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         serialized_statements = [statement.serialise(indent_level) for statement in self.statements]
         return "\n".join([f"{line}" for line in serialized_statements])
 
 class Statement(Entity):
-    def __init__(self) -> None:
+    def __init__(self):
         self.line_number = 0
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         pass
 
 class CallStatement(Statement):
-    def __init__(self, procedure_name: str) -> None:
+    def __init__(self, procedure_name):
         self.procedure_name = procedure_name
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         indentation = " " * (indent_level * 4)
         return f"{indentation}call {self.procedure_name};"
 
 class PrintStatement(Statement):
-    def __init__(self, variable_name: str) -> None:
+    def __init__(self, variable_name):
         self.variable_name = variable_name
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         indentation = " " * (indent_level * 4)
         return f"{indentation}print {self.variable_name};"
 
 class ReadStatement(Statement):
-    def __init__(self, variable_name: str) -> None:
+    def __init__(self, variable_name):
         self.variable_name = variable_name
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         indentation = " " * (indent_level * 4)
         return f"{indentation}read {self.variable_name};"
 
 class IfStatement(Statement):
-    def __init__(self, condition: Expression, if_statements: StatementList, else_statements: StatementList) -> None:
+    def __init__(self, condition, if_statements, else_statements):
         self.condition = condition
         self.if_statements = if_statements
         self.else_statements = else_statements
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         indentation = " " * (indent_level * 4)
         code = (
             f"{indentation}if ({self.condition.serialise()}) then {{\n"
@@ -108,11 +108,11 @@ class IfStatement(Statement):
         return code
     
 class WhileStatement(Statement):
-    def __init__(self, condition: Expression, statements: StatementList):
+    def __init__(self, condition, statements):
         self.condition = condition
         self.statements = statements
 
-    def serialise(self, indent_level: int = 0) -> str:
+    def serialise(self, indent_level=0):
         indentation = " " * (indent_level * 4)
         code = (
             f"{indentation}while ({self.condition.serialise()}) {{\n"
@@ -120,6 +120,7 @@ class WhileStatement(Statement):
             f"{indentation}}}"
         )
         return code
+
 
 import random   
 APPEND_CHANCE = 0.7
