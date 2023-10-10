@@ -103,6 +103,20 @@ class IfStatement(Statement):
             f"{indentation}}}"
         )
         return code
+    
+class WhileStatement(Statement):
+    def __init__(self, condition: Expression, statements: StatementList):
+        self.condition = condition
+        self.statements = statements
+
+    def serialise(self, indent_level: int = 0) -> str:
+        indentation = " " * (indent_level * 4)
+        code = (
+            f"{indentation}while ({self.condition.serialise()}) {{\n"
+            f"{self.statements.serialise(indent_level + 1)}\n"
+            f"{indentation}}}"
+        )
+        return code
 
 import random   
 APPEND_CHANCE = 0.7
@@ -120,8 +134,8 @@ class ProcedureFactory(EntityFactory):
     current_count = 0
 
     def generate(self):
-        procedure_name = f"proc_{self.current_count}"
         ProcedureFactory.current_count += 1
+        procedure_name = f"proc_{self.current_count}"
 
         statement_list = StatementListFactory().generate()
         procedure = Procedure(procedure_name, statement_list)
@@ -134,8 +148,14 @@ class StatementListFactory(EntityFactory):
 
         while random.random() < roll():
             statement_factory = random.choices(
-                [CallStatementFactory, PrintStatementFactory, ReadStatementFactory, IfStatementFactory],
-                weights = (20, 20, 20, 20))[0]
+                [
+                    CallStatementFactory,
+                    PrintStatementFactory,
+                    ReadStatementFactory,
+                    IfStatementFactory,
+                    WhileStatementFactory
+                 ],
+                weights = (20, 20, 20, 10, 10))[0]
             statements.append(statement_factory().generate())
 
         return StatementList(statements)
@@ -164,6 +184,12 @@ class IfStatementFactory(EntityFactory):
         if_statements = StatementListFactory().generate()
         else_statements = StatementListFactory().generate()
         return IfStatement(condition, if_statements, else_statements)
+    
+class WhileStatementFactory(EntityFactory):
+    def generate(self):
+        condition = ExpressionGenerator().generate()
+        statements = StatementListFactory().generate()
+        return WhileStatement(condition, statements)
 
 class ExpressionGenerator(EntityFactory):
     def generate(self):
