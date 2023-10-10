@@ -1,5 +1,8 @@
 from typing import List
 
+from pkb import PKB
+pkb = PKB()
+
 class Entity:
     def serialise(self, indent_level: int = 0) -> str:
         pass
@@ -160,7 +163,30 @@ class StatementListFactory(EntityFactory):
 
         return StatementList(statements)
 
+from functools import wraps
+
+class TrackCallsDecorator:
+    def __init__(self, pkb):
+        self.pkb = pkb
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            statement = func(*args, **kwargs)
+
+            if isinstance(statement, CallStatement):
+                current_procedure = "proc_" + str(ProcedureFactory.current_count)
+                procedure_name = statement.procedure_name
+                pkb.add_relationship(("calls", current_procedure, procedure_name))
+
+            return statement
+        return wrapper
+    
+def track_calls(pkb):
+    return TrackCallsDecorator(pkb)
+
 class CallStatementFactory(EntityFactory):
+    @track_calls(pkb)
     def generate(self):
         if ProcedureFactory.current_count == 1:
             return ReadStatement('PASS')
@@ -202,3 +228,5 @@ if __name__ == "__main__":
         buffer += p.generate().serialise()
         with open('generate.in', 'w') as f:
             f.write(buffer)
+    
+    print(pkb.relationships)

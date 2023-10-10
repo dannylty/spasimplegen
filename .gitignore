@@ -1,3 +1,4 @@
 *.in
 *.out
 *.png
+__pycache__
