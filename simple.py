@@ -123,7 +123,6 @@ class WhileStatement(Statement):
 
 import random   
 APPEND_CHANCE = 0.7
-NEST_CHANCE = 0.4
 DECAY = 0.9999
 def roll():
     global APPEND_CHANCE
