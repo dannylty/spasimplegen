@@ -303,8 +303,6 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SIMPLE generator", epilog='e.g.: python3 simple.py -l 1.0 -b 0.1 -e 0.9')
-    
-    
     parser.add_argument(
         "-n",
         type = int,
@@ -340,8 +338,7 @@ if __name__ == "__main__":
         global APPEND_CHANCE
         APPEND_CHANCE *= DECAY
         return APPEND_CHANCE
-
-
+    
     p = ProcedureFactory()
     buffer = ""
     for _ in range(args.n):
