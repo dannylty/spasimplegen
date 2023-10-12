@@ -1,7 +1,6 @@
 ```
-python3 simple.py
-python3 simple.py -h
-python3 generate.py
+python3 simple.py (-h)
+python3 format.py
 ```
 | Argument | Type  | Default | Description                                                                                                                                 |
 |----------|-------|---------|--------------------------------------------------------------------------------------------------------------------------------------------|
