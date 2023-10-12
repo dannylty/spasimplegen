@@ -153,10 +153,10 @@ class EntityFactory:
 class VariableFactory(EntityFactory):
     def generate(self):
         if ReadStatementFactory.variable_count == 0:
-            return Variable("var_1")
+            return Variable("var1")
         else:
             variable_number = random.randint(1, ReadStatementFactory.variable_count)
-            return Variable(f"var_{variable_number}")
+            return Variable(f"var{variable_number}")
 
 class BracketFactory(EntityFactory):
     def generate(self):
@@ -204,7 +204,7 @@ class ProcedureFactory(EntityFactory):
 
     def generate(self):
         ProcedureFactory.current_count += 1
-        procedure_name = f"proc_{self.current_count}"
+        procedure_name = f"proc{self.current_count}"
 
         statement_list = StatementListFactory().generate()
         procedure = Procedure(procedure_name, statement_list)
@@ -242,7 +242,7 @@ class TrackCallsDecorator:
             statement = func(*args, **kwargs)
 
             if isinstance(statement, CallStatement):
-                current_procedure = "proc_" + str(ProcedureFactory.current_count)
+                current_procedure = "proc" + str(ProcedureFactory.current_count)
                 procedure_name = statement.procedure_name
                 pkb.add_relationship(("calls", current_procedure, procedure_name))
 
@@ -258,7 +258,7 @@ class CallStatementFactory(EntityFactory):
         if ProcedureFactory.current_count == 1:
             return ReadStatement('PASS')
         
-        procedure_name = f"proc_{random.randint(1, ProcedureFactory.current_count - 1)}"
+        procedure_name = f"proc{random.randint(1, ProcedureFactory.current_count - 1)}"
         return CallStatement(procedure_name)
 
 class PrintStatementFactory(EntityFactory):
@@ -266,7 +266,7 @@ class PrintStatementFactory(EntityFactory):
         if ReadStatementFactory.variable_count == 0:
             return ReadStatementFactory.generate()
         
-        variable_name = f"var_{random.randint(1, ReadStatementFactory.variable_count)}"
+        variable_name = f"var{random.randint(1, ReadStatementFactory.variable_count)}"
         return PrintStatement(variable_name)
 
 class ReadStatementFactory(EntityFactory):
@@ -274,7 +274,7 @@ class ReadStatementFactory(EntityFactory):
 
     def generate(self):
         ReadStatementFactory.variable_count += 1
-        variable_name = f"var_{ReadStatementFactory.variable_count}"
+        variable_name = f"var{ReadStatementFactory.variable_count}"
         return ReadStatement(variable_name)
 
 class IfStatementFactory(EntityFactory):
@@ -295,7 +295,7 @@ class AssignStatementFactory(EntityFactory):
         if ReadStatementFactory.variable_count == 0:
             return ReadStatementFactory.generate()
         
-        variable_name = f"var_{random.randint(1, ReadStatementFactory.variable_count)}"
+        variable_name = f"var{random.randint(1, ReadStatementFactory.variable_count)}"
         expression = ExpressionFactory().generate()
         return AssignStatement(variable_name, expression)
 
@@ -333,10 +333,10 @@ if __name__ == "__main__":
     TERM_CHANCE = 1-args.e
     APPEND_CHANCE = args.l
     BRANCH_FACTOR = args.b
-    DECAY = 0.9999
+    DECAY = 0.999
     def roll():
-        global APPEND_CHANCE
-        APPEND_CHANCE *= DECAY
+        global BRANCH_FACTOR
+        BRANCH_FACTOR *= DECAY
         return APPEND_CHANCE
     
     p = ProcedureFactory()
