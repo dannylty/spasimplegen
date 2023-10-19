@@ -68,4 +68,4 @@ formatted.in:
 "}\n"
 "procedure proc5 {\n"
 "    read var8;\n" // 11
-"}\n"```
+"}\n"
