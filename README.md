@@ -15,6 +15,8 @@ current processors:
 * CALLS
 * NEXT
 
+Extracted stuff is in `truths.out`.
+
 Samples:
 generate.in:
 ```
