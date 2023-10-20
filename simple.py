@@ -1,6 +1,7 @@
 import random
 
 from pkb import PKB
+global pkb
 pkb = PKB()
 
 class Entity:
@@ -252,8 +253,27 @@ class TrackCallsDecorator:
 def track_calls(pkb):
     return TrackCallsDecorator(pkb)
 
+class StatementFactory(EntityFactory):
+    stmt_count = 0
+
+    @staticmethod
+    def track_statements(func):
+        def wrapper(*args, **kwargs):
+            StatementFactory.stmt_count += 1
+            a = StatementFactory.stmt_count
+            statement = func(*args, **kwargs)
+
+            statement.line_number = a
+            
+            return statement
+
+        return wrapper
+
+ 
+
 class CallStatementFactory(EntityFactory):
     @track_calls(pkb)
+    @StatementFactory.track_statements
     def generate(self):
         if ProcedureFactory.current_count == 1:
             return ReadStatement('PASS')
@@ -262,6 +282,7 @@ class CallStatementFactory(EntityFactory):
         return CallStatement(procedure_name)
 
 class PrintStatementFactory(EntityFactory):
+    @StatementFactory.track_statements
     def generate(self):
         if ReadStatementFactory.variable_count == 0:
             return ReadStatementFactory.generate()
@@ -271,13 +292,14 @@ class PrintStatementFactory(EntityFactory):
 
 class ReadStatementFactory(EntityFactory):
     variable_count = 0
-
+    @StatementFactory.track_statements
     def generate(self):
         ReadStatementFactory.variable_count += 1
         variable_name = f"var{ReadStatementFactory.variable_count}"
         return ReadStatement(variable_name)
 
 class IfStatementFactory(EntityFactory):
+    @StatementFactory.track_statements
     def generate(self):
         condition = BooleanExpressionFactory().generate()
         if_statements = StatementListFactory().generate()
@@ -285,12 +307,14 @@ class IfStatementFactory(EntityFactory):
         return IfStatement(condition, if_statements, else_statements)
     
 class WhileStatementFactory(EntityFactory):
+    @StatementFactory.track_statements
     def generate(self):
         condition = BooleanExpressionFactory().generate()
         statements = StatementListFactory().generate()
         return WhileStatement(condition, statements)
 
 class AssignStatementFactory(EntityFactory):
+    @StatementFactory.track_statements
     def generate(self):
         if ReadStatementFactory.variable_count == 0:
             return ReadStatementFactory.generate()
@@ -298,6 +322,73 @@ class AssignStatementFactory(EntityFactory):
         variable_name = f"var{random.randint(1, ReadStatementFactory.variable_count)}"
         expression = ExpressionFactory().generate()
         return AssignStatement(variable_name, expression)
+
+
+class Extractor:
+    pass
+
+class NextExtractor(Extractor):
+    def __init__(self, pkb):
+        self.pkb = pkb
+        self.m_prev = list()
+
+    def visit_procedure(self, p):
+        self.visit_stmt_lst(p.statements)
+        self.m_prev = list()
+
+    def visit_if_stmt(self, if_stmt):
+        self.register_next(if_stmt)
+        self.m_prev = list()
+
+        then_extractor = NextExtractor(self.pkb)
+        else_extractor = NextExtractor(self.pkb)
+        then_extractor.m_prev.append(if_stmt)
+        else_extractor.m_prev.append(if_stmt)
+
+        then_extractor.visit_stmt_lst(if_stmt.if_statements)
+        else_extractor.visit_stmt_lst(if_stmt.else_statements)
+
+        self.m_prev += then_extractor.m_prev
+        self.m_prev += else_extractor.m_prev
+
+    def visit_while_stmt(self, while_stmt):
+        self.register_next(while_stmt)
+
+        inner_extractor = NextExtractor(self.pkb)
+        inner_extractor.m_prev.append(while_stmt)
+
+        inner_extractor.visit_stmt_lst(while_stmt.statements)
+        inner_extractor.register_next(while_stmt)
+
+    def visit_stmt_lst(self, statements):
+        for stmt in statements.statements:
+            if type(stmt) == WhileStatement:
+                self.visit_while_stmt(stmt)
+            elif type(stmt) == IfStatement:
+                self.visit_if_stmt(stmt)
+            else:
+                self.visit_normal_stmt(stmt)
+
+    def register_next(self, s):
+        for stmt in self.m_prev:
+            self.pkb.add_relationship(("next", stmt.line_number, s.line_number))
+
+        self.m_prev = list()
+        self.m_prev.append(s)
+
+    def visit_binary_expr(self, _):
+        pass
+
+    def visit_literal_expr(self, _):
+        pass
+
+    def visit_unary_expr(self, _):
+        pass
+
+    def visit_normal_stmt(self, s):
+        self.register_next(s)
+
+
 
 import argparse
 
@@ -338,13 +429,21 @@ if __name__ == "__main__":
         global BRANCH_FACTOR
         BRANCH_FACTOR *= DECAY
         return APPEND_CHANCE
-    
+    procs = []
     p = ProcedureFactory()
     buffer = ""
     for _ in range(args.n):
-        buffer += p.generate().serialise()
+        curr = p.generate()
+        procs.append(curr)
+        buffer += curr.serialise()
         with open('generate.in', 'w') as f:
             f.write(buffer)
+
+    ne = NextExtractor(pkb)
+    for p in procs:
+        ne.visit_procedure(p)
+
+    # print(pkb.relationships)
     
     with open('truths.out', 'w') as f:
         f.write(')\n('.join(str(list(pkb.relationships)).split('), (')))
