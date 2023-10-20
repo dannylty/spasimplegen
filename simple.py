@@ -371,7 +371,11 @@ class NextExtractor(Extractor):
 
     def register_next(self, s):
         for stmt in self.m_prev:
-            self.pkb.add_relationship(("next", stmt.line_number, s.line_number))
+            stmt_type = str(type(stmt)).split('main__.')[1][:-11]
+            s_type = str(type(s)).split('main__.')[1][:-11]
+            self.pkb.add_relationship(("next",
+                                       str(stmt.line_number) + '_' + stmt_type,
+                                       str(s.line_number) + '_' + s_type,))
 
         self.m_prev = list()
         self.m_prev.append(s)

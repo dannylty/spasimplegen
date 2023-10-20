@@ -13,6 +13,7 @@ generates simple source code in generate.in
 
 current processors:
 * CALLS
+* NEXT
 
 Samples:
 generate.in:
