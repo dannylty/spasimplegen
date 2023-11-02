@@ -442,6 +442,7 @@ if __name__ == "__main__":
         buffer += curr.serialise()
         with open('generate.in', 'w') as f:
             f.write(buffer)
+        BRANCH_FACTOR = args.b
 
     ne = NextExtractor(pkb)
     for p in procs:
